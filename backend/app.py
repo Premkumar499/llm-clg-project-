@@ -99,6 +99,17 @@ class ReindexResponse(BaseModel):
     message: str
 
 
+@app.get("/")
+def root():
+    return {
+        "status": "ok",
+        "service": "Student Portfolio LLM API",
+        "author": "Prem Kumar",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
+
 @app.get("/health")
 def health():
     return {
