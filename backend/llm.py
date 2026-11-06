@@ -3,9 +3,6 @@ import re
 import json
 import warnings
 
-if "HF_HUB_OFFLINE" not in os.environ:
-    os.environ["HF_HUB_OFFLINE"] = "1"
-
 warnings.filterwarnings("ignore")
 import torch
 from typing import Dict, Any, List, Tuple

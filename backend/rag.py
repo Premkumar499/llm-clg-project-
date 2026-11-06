@@ -3,10 +3,6 @@ import os
 import glob
 import warnings
 
-# Avoid hanging on DNS lookups if offline
-if "HF_HUB_OFFLINE" not in os.environ:
-    os.environ["HF_HUB_OFFLINE"] = "1"
-
 warnings.filterwarnings("ignore", category=FutureWarning)
 import fitz
 import faiss

@@ -14,6 +14,9 @@ COPY backend/requirements.txt ./
 RUN sed -i '/bitsandbytes/d' requirements.txt && \
     pip install --no-cache-dir -r requirements.txt
 
+# Pre-download SentenceTransformer model during image build so it's cached
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
+
 COPY backend/ ./backend/
 COPY model/ ./model/
 COPY prem_finetune_dataset.jsonl ./
@@ -21,9 +24,6 @@ COPY rag_pdf/ ./rag_pdf/
 
 ENV PYTHONPATH=/app/backend
 WORKDIR /app/backend
-
-# Pre-build RAG FAISS index during build
-RUN python rag.py
 
 EXPOSE 8000 10000
 
