@@ -6,8 +6,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Install lightweight CPU-only PyTorch first
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
 COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Install requirements excluding bitsandbytes for CPU deployment
+RUN sed -i '/bitsandbytes/d' requirements.txt && \
+    pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ ./backend/
 COPY model/ ./model/
@@ -17,8 +22,10 @@ COPY "rag pdf/" "./rag pdf/"
 ENV PYTHONPATH=/app/backend
 WORKDIR /app/backend
 
+# Pre-build RAG FAISS index during build
 RUN python rag.py
 
-EXPOSE 8000
+EXPOSE 8000 10000
 
-CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Render provides $PORT dynamically
+CMD ["sh", "-c", "python -m uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
