@@ -17,7 +17,7 @@ RUN sed -i '/bitsandbytes/d' requirements.txt && \
 COPY backend/ ./backend/
 COPY model/ ./model/
 COPY prem_finetune_dataset.jsonl ./
-COPY "rag pdf/" "./rag pdf/"
+COPY rag_pdf/ ./rag_pdf/
 
 ENV PYTHONPATH=/app/backend
 WORKDIR /app/backend

@@ -14,7 +14,11 @@ from sentence_transformers import SentenceTransformer
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.getenv("DATA_DIR", os.path.join(BASE_DIR, "data"))
-RAG_PDF_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "rag pdf"))
+RAG_PDF_DIRS = [
+    os.path.abspath(os.path.join(BASE_DIR, "..", "rag_pdf")),
+    os.path.abspath(os.path.join(BASE_DIR, "..", "rag pdf")),
+    DATA_DIR
+]
 PDF_PATH = os.getenv("PDF_PATH", os.path.join(DATA_DIR, "prem_updated_portfolio_rag_knowledge_base.pdf"))
 if not os.path.exists(PDF_PATH):
     PDF_PATH = os.path.join(DATA_DIR, "prem_rag_knowledge_base.pdf")
@@ -38,8 +42,8 @@ def get_all_pdf_paths():
     seen_names = set()
     unique_paths = []
     
-    # Priority: backend/data then rag pdf
-    for search_dir in [DATA_DIR, RAG_PDF_DIR]:
+    # Priority: backend/data then rag_pdf folders
+    for search_dir in RAG_PDF_DIRS:
         if os.path.exists(search_dir):
             for pdf_file in glob.glob(os.path.join(search_dir, "*.pdf")):
                 bname = os.path.basename(pdf_file)
