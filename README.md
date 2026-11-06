@@ -84,7 +84,7 @@ llm-mini-project/
 │   └── vite.config.js
 ├── tests/
 │   └── test_portfolio_rag.py  # 11 automated test cases
-├── prem_portfolio_lora/       # Trained LoRA adapter files & tokenizer
+├── model/                     # Trained LoRA adapter files & tokenizer
 ├── prem_finetune_dataset.jsonl# Fine-tuning dataset
 └── README.md
 ```
@@ -125,3 +125,4 @@ Open `http://localhost:5173/` in your browser.
 ```bash
 python -m unittest tests/test_portfolio_rag.py
 ```
+

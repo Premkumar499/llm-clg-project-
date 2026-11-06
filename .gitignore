@@ -19,3 +19,4 @@ dist/
 
 # Environment variables
 .env.local
+

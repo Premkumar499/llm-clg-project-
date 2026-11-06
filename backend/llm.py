@@ -12,17 +12,16 @@ from typing import Dict, Any, List, Tuple
 
 BASE_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
 
-# Resolve adapter path relative to this file or environment
-DEFAULT_ADAPTER = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "prem_portfolio_lora")
-)
-if not os.path.exists(DEFAULT_ADAPTER):
-    DEFAULT_ADAPTER = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "prem_portfolio_lora")
-    )
-if not os.path.exists(DEFAULT_ADAPTER):
-    DEFAULT_ADAPTER = "/models/prem_portfolio_lora"
-
+# Resolve adapter path relative to this file or environment (checks 'model' or 'prem_portfolio_lora')
+candidate_paths = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "model")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "prem_portfolio_lora")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "model")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "prem_portfolio_lora")),
+    "/models/model",
+    "/models/prem_portfolio_lora"
+]
+DEFAULT_ADAPTER = next((p for p in candidate_paths if os.path.exists(p)), candidate_paths[0])
 ADAPTER_PATH = os.getenv("LORA_ADAPTER_PATH", DEFAULT_ADAPTER)
 DATASET_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "prem_finetune_dataset.jsonl")
