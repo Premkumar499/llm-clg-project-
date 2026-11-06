@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pymupdf
+sentence-transformers
+faiss-cpu
+transformers
+peft
+accelerate
+bitsandbytes
+torch
+
