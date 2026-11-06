@@ -72,7 +72,7 @@ def classify_route(question: str) -> Tuple[str, str]:
 class ChatRequest(BaseModel):
     question: str = Field(min_length=2, max_length=1000)
     mode: Optional[str] = Field(default="auto", description="Execution mode: 'auto', 'rag', or 'direct'")
-    top_k: Optional[int] = Field(default=4, ge=1, le=10)
+    top_k: Optional[int] = Field(default=6, ge=1, le=10)
     threshold: Optional[float] = Field(default=0.25, ge=0.0, le=1.0)
 
 

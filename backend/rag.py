@@ -1,5 +1,6 @@
 import json
 import os
+import glob
 import warnings
 
 # Avoid hanging on DNS lookups if offline
@@ -12,7 +13,12 @@ import faiss
 from sentence_transformers import SentenceTransformer
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PDF_PATH = os.getenv("PDF_PATH", os.path.join(BASE_DIR, "data", "prem_rag_knowledge_base.pdf"))
+DATA_DIR = os.getenv("DATA_DIR", os.path.join(BASE_DIR, "data"))
+RAG_PDF_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "rag pdf"))
+PDF_PATH = os.getenv("PDF_PATH", os.path.join(DATA_DIR, "prem_updated_portfolio_rag_knowledge_base.pdf"))
+if not os.path.exists(PDF_PATH):
+    PDF_PATH = os.path.join(DATA_DIR, "prem_rag_knowledge_base.pdf")
+
 STORE_DIR = os.getenv("STORE_DIR", os.path.join(BASE_DIR, "vector_store"))
 INDEX_PATH = os.path.join(STORE_DIR, "portfolio.faiss")
 CHUNKS_PATH = os.path.join(STORE_DIR, "chunks.json")
@@ -25,6 +31,25 @@ def get_embedding_model():
     if _embedding_model is None:
         _embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     return _embedding_model
+
+
+def get_all_pdf_paths():
+    """Find all unique PDF knowledge base files from data/ and 'rag pdf/' folders."""
+    seen_names = set()
+    unique_paths = []
+    
+    # Priority: backend/data then rag pdf
+    for search_dir in [DATA_DIR, RAG_PDF_DIR]:
+        if os.path.exists(search_dir):
+            for pdf_file in glob.glob(os.path.join(search_dir, "*.pdf")):
+                bname = os.path.basename(pdf_file)
+                if bname not in seen_names:
+                    seen_names.add(bname)
+                    unique_paths.append(os.path.abspath(pdf_file))
+    
+    if not unique_paths and os.path.exists(PDF_PATH):
+        unique_paths.append(os.path.abspath(PDF_PATH))
+    return sorted(unique_paths)
 
 
 def extract_pdf_text(path=None):
@@ -53,15 +78,37 @@ def split_into_chunks(text, chunk_size=180, overlap=30):
 
 
 def build_index():
+    global _cached_index, _cached_chunks
     os.makedirs(STORE_DIR, exist_ok=True)
-    chunks = split_into_chunks(extract_pdf_text(PDF_PATH))
+    
+    pdf_files = get_all_pdf_paths()
+    print(f"Reading {len(pdf_files)} PDF source(s):")
+    for p in pdf_files:
+        print(f"  - {os.path.basename(p)}")
 
-    if not chunks:
-        raise ValueError("No text was extracted from the portfolio PDF.")
+    all_chunks = []
+    for pdf_file in pdf_files:
+        try:
+            text = extract_pdf_text(pdf_file)
+            file_chunks = split_into_chunks(text)
+            all_chunks.extend(file_chunks)
+        except Exception as e:
+            print(f"Warning: Failed to extract text from {pdf_file}: {e}")
+
+    # Deduplicate identical chunks if any
+    unique_chunks = []
+    seen = set()
+    for c in all_chunks:
+        if c not in seen:
+            seen.add(c)
+            unique_chunks.append(c)
+
+    if not unique_chunks:
+        raise ValueError("No text was extracted from the portfolio PDFs.")
 
     model = get_embedding_model()
     vectors = model.encode(
-        chunks,
+        unique_chunks,
         convert_to_numpy=True,
         normalize_embeddings=True
     ).astype("float32")
@@ -72,10 +119,13 @@ def build_index():
 
     faiss.write_index(index, INDEX_PATH)
     with open(CHUNKS_PATH, "w", encoding="utf-8") as f:
-        json.dump(chunks, f, ensure_ascii=False, indent=2)
+        json.dump(unique_chunks, f, ensure_ascii=False, indent=2)
 
-    print(f"Indexed {len(chunks)} chunks.")
-    return len(chunks)
+    _cached_index = index
+    _cached_chunks = unique_chunks
+
+    print(f"Indexed {len(unique_chunks)} chunks from {len(pdf_files)} PDF(s).")
+    return len(unique_chunks)
 
 
 _cached_index = None
@@ -123,4 +173,3 @@ def retrieve_context(question, top_k=4):
 
 if __name__ == "__main__":
     build_index()
-

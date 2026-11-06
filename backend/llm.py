@@ -162,9 +162,21 @@ def _generate_with_engine(question: str, context: str = None, mode: str = "rag")
     # Grounded synthesis on context
     ctx = context
 
-    # Project queries
+    # Specific project queries (check specific first)
+    if "portfolio llm" in q_norm or "student portfolio" in q_norm:
+        return "Prem is currently developing the **Student Portfolio LLM** (Status: Implementation in progress). It is an intelligent portfolio Q&A assistant for visitors and recruiters. It routes stable identity questions to a fine-tuned Qwen2.5-1.5B-Instruct model (using LoRA/QLoRA) and dynamic skills/projects to a FAISS vector store using RAG and Sentence Transformers, served via FastAPI and a React frontend."
+    if "deepfake" in q_norm:
+        return "Prem developed the **Deepfake Audio Detection System** (Status: Completed). It classifies audio as human or AI-generated across Tamil, English, Hindi, Malayalam, and Telugu. Technologies used include Python, PyTorch, Wav2Vec2, Librosa, and Scikit-learn. Live link: https://deepfake-flame.vercel.app/"
+    if "kllm" in q_norm:
+        return "Prem developed the **kLLM (Kids Large Language Model)** concept (Status: R&D). It is a child-focused conversational AI for kids under 10 focusing on safe, friendly, and educational responses using Hugging Face Transformers, LoRA, QLoRA, and PEFT with Phi-4-mini-instruct."
+    if "signbridge" in q_norm or "sign language" in q_norm:
+        return "**Mediapipe SignBridge** is an Indian Sign Language recognition project using video and hand-landmark tracking with MediaPipe, Python, and Machine Learning. The dataset includes 263 ISL words, 4,287 videos, and approximately 270,000 frames."
+
+    # General project queries
     if any(w in q_norm for w in ["project", "built", "develop", "work"]):
         projects = []
+        if "Student Portfolio LLM" in ctx or "Portfolio Assistant" in ctx or "Portfolio LLM" in ctx:
+            projects.append("**Student Portfolio LLM** (In Progress): Portfolio Q&A assistant connecting fine-tuned Qwen2.5-1.5B-Instruct + LoRA with FAISS RAG, FastAPI, and React.")
         if "Deepfake Audio Detection System" in ctx:
             projects.append("**Deepfake Audio Detection System** (Completed): Multilingual deepfake audio classifier supporting Tamil, English, Hindi, Malayalam, and Telugu using PyTorch, Wav2Vec2, and Librosa.")
         if "kLLM" in ctx:
@@ -183,20 +195,23 @@ def _generate_with_engine(question: str, context: str = None, mode: str = "rag")
             projects.append("**AI Security**: Public repository available at https://github.com/Premkumar499/ai-security.")
 
         if projects:
-            return "Based on Prem's portfolio, he has developed the following projects:\n\n" + "\n\n".join(f"• {p}" for p in projects)
-
-    # Specific project queries
-    if "deepfake" in q_norm:
-        return "Prem developed the **Deepfake Audio Detection System** (Status: Completed). It classifies audio as human or AI-generated across Tamil, English, Hindi, Malayalam, and Telugu. Technologies used include Python, PyTorch, Wav2Vec2, Librosa, and Scikit-learn. Live link: https://deepfake-flame.vercel.app/"
-    if "kllm" in q_norm:
-        return "Prem developed the **kLLM (Kids Large Language Model)** concept (Status: R&D). It is a child-focused conversational AI for kids under 10 focusing on safe, friendly, and educational responses using Hugging Face Transformers, LoRA, QLoRA, and PEFT with Phi-4-mini-instruct."
-    if "signbridge" in q_norm or "sign language" in q_norm:
-        return "**Mediapipe SignBridge** is an Indian Sign Language recognition project using video and hand-landmark tracking with MediaPipe, Python, and Machine Learning. The dataset includes 263 ISL words, 4,287 videos, and approximately 270,000 frames."
+            return "Based on Prem's updated portfolio, he has developed the following projects:\n\n" + "\n\n".join(f"• {p}" for p in projects)
+        else:
+            return (
+                "Based on Prem's updated portfolio, he has developed the following projects:\n\n"
+                "• **Student Portfolio LLM** (In Progress): Portfolio Q&A assistant connecting fine-tuned Qwen2.5-1.5B-Instruct + LoRA with FAISS RAG, FastAPI, and React.\n\n"
+                "• **Deepfake Audio Detection System** (Completed): Multilingual deepfake audio classifier supporting Tamil, English, Hindi, Malayalam, and Telugu using PyTorch, Wav2Vec2, and Librosa.\n\n"
+                "• **kLLM - Kids Large Language Model** (R&D): Child-focused conversational AI concept for kids under 10 with safety guardrails using Hugging Face Transformers, LoRA, and PEFT.\n\n"
+                "• **Mediapipe SignBridge**: Indian Sign Language recognition using 263 ISL words, 4,287 videos, and MediaPipe landmark tracking.\n\n"
+                "• **Voice Assistant - Jarvis** (Developed): Python voice assistant using Eel, SQLite, PyAudio, pyttsx3, and Speech Recognition.\n\n"
+                "• **YouTube Clone** (Developed): Frontend web application built with React, Vite, JavaScript, and Netlify.\n\n"
+                "• **AI Security**: Public repository available at https://github.com/Premkumar499/ai-security."
+            )
 
     # Skills queries
     if any(w in q_norm for w in ["skill", "programming", "language", "frontend", "backend", "framework", "database", "tools"]):
         skills_summary = (
-            "Prem's technical skills listed in his portfolio include:\n"
+            "Prem's technical skills listed in his updated portfolio include:\n"
             "• **Programming Languages:** Python, C, Java, JavaScript, SQL\n"
             "• **Frontend:** HTML, CSS, React, Bootstrap, Tailwind CSS\n"
             "• **Backend & Web:** Node.js, Flask, FastAPI, Vite\n"
@@ -207,16 +222,17 @@ def _generate_with_engine(question: str, context: str = None, mode: str = "rag")
         return skills_summary
 
     # Achievements queries
-    if any(w in q_norm for w in ["achievement", "participat", "competition", "hackathon", "ambassador", "contest"]):
-        return (
-            "Prem's achievements and participation documented in his portfolio:\n"
-            "• **Google Student Ambassador Program 2026:** Joined the program\n"
-            "• **Microsoft Agents League Contest:** Completed at AI Skills Fest\n"
-            "• **GUVI BuildBridge Hackathon:** Participated (result pending at last update)\n"
-            "• **College Chess Competitions:** Represented the college\n"
-            "• **Paper Presentation & Codeathon:** Participated in college technical events\n\n"
-            "*Note: In accordance with portfolio data quality rules, participation is strictly reported as participation rather than award wins unless documented.*"
-        )
+    if any(w in q_norm for w in ["achievement", "participat", "competition", "hackathon", "ambassador", "contest", "rank"]):
+        achievements = [
+            "**AI Impact National Hackathon:** Reported rank 7 (among ~40,000 participants).",
+            "**College coding contest:** Reported rank 2.",
+            "**Google Student Ambassador Program 2026:** Joined the program.",
+            "**Microsoft Agents League Contest:** Completed at AI Skills Fest.",
+            "**GUVI BuildBridge Hackathon:** Participated (second round pending at last update).",
+            "**College Chess Competitions:** Represented the college.",
+            "**Paper Presentation & Codeathon:** Participated in college technical events."
+        ]
+        return "Prem's achievements and contest participation documented in his portfolio:\n\n" + "\n\n".join(f"• {a}" for a in achievements)
 
     # Career interests and goals
     if any(w in q_norm for w in ["career", "goal", "role", "interest", "target"]):
